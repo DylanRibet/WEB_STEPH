@@ -3,372 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Un petit jeu pour toi 😏</title>
+    <title>Surprise pour Stéphanie !</title>
     <style>
-        /* Reset CSS */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #ffe6e6;
-            text-align: center;
-            padding: 20px;
-            overflow: hidden;
-            height: 100vh;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            width: 100%;
+            position: relative;
+            z-index: 2;
         }
 
         h1 {
-            color: #ff4d4d;
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            animation: fadeIn 2s ease-in-out;
+            font-size: 2rem;
+            color: #d60087;
+            margin-bottom: 15px;
         }
 
-        .question {
-            margin: 20px 0;
-            font-size: 1.2em;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1s ease, transform 1s ease;
+        p {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 15px;
         }
 
-        .question.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .button {
-            background-color: #ff4d4d;
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            background-color: #d60087;
             color: white;
             border: none;
-            padding: 10px 20px;
-            margin: 10px;
+            border-radius: 10px;
             cursor: pointer;
-            border-radius: 50px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s;
         }
 
-        .button:hover {
-            background-color: #ff1a1a;
-            transform: scale(1.1);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .message {
-            margin-top: 30px;
-            font-size: 1.5em;
-            color: #ff4d4d;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 1s ease, transform 1s ease;
-        }
-
-        .message.visible {
-            opacity: 1;
-            transform: translateY(0);
+        button:hover {
+            background-color: #ff6f61;
         }
 
         .hidden {
             display: none;
         }
 
-        .gif {
-            max-width: 100%;
-            height: auto;
-            margin: 20px 0;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .balloon {
+            position: absolute;
+            width: 60px;
+            height: 90px;
+            background-color: #ff6f61;
+            border-radius: 50%;
+            cursor: pointer;
+            animation: float 6s infinite ease-in-out;
+            z-index: 1;
         }
 
-        .arrow {
-            width: 50px;
-            margin: 10px;
-            animation: float 2s ease-in-out infinite;
+        .balloon::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 25px;
+            width: 15px;
+            height: 20px;
+            background-color: #ff6f61;
+            border-radius: 50%;
         }
 
-        /* Animation pour le bouton "Non" */
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            50% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-            100% { transform: translateX(0); }
+        .balloon::before {
+            content: '';
+            position: absolute;
+            bottom: -35px;
+            left: 28px;
+            width: 2px;
+            height: 35px;
+            background-color: #000;
         }
 
         @keyframes float {
-            0% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0); }
+            0% { transform: translateY(0) translateX(0) rotate(0deg); }
+            50% { transform: translateY(-150px) translateX(20px) rotate(10deg); }
+            100% { transform: translateY(0) translateX(0) rotate(0deg); }
         }
 
-        /* Animation d'apparition */
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            z-index: 3;
+            text-align: center;
+        }
+
+        .popup button {
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
-
-    <!-- Page de couverture avec énigme -->
-    <div id="cover">
-        <h1>Devine ce qui t'attend 😏</h1>
-        <p>Pour commencer, résous cette énigme :</p>
-        <p><em>"Je suis toujours devant toi, mais tu ne peux jamais me toucher. Qui suis-je ?"</em></p>
-        <input type="text" id="riddleAnswer" placeholder="Ta réponse ici">
-        <button class="button" onclick="checkRiddle()">Valider</button>
-        <!-- Bouton "Indice" placé directement en dessous du bouton "Valider" -->
-        <button class="button" id="indiceButton" onclick="afficherIndice()" style="margin-top: 10px;">
-            Si t'es pas patiente et tu veux l'Indice, clique ici !
-        </button>
-        <p id="indice" class="hidden" style="margin-top: 10px; font-style: italic; color: #ff4d4d;">
-            Indice : C'est quelque chose que toi et moi voulons construire ensemble et que ça continue longtemps.
-        </p>
+    <!-- Étape 1 : Introduction -->
+    <div class="container" id="etape1">
+        <h1>Bon, bon, bon...</h1>
+        <p>J'ai pris du temps pour faire ça, alors amuse-toi bien !</p>
+        <button onclick="afficherEtape2()">Suivant</button>
     </div>
 
-    <!-- Questionnaire -->
-    <div id="questionnaire" class="hidden">
-        <div class="question" id="question1">
-            <p>Si je te dis que tu es belle, tu réponds quoi ?</p>
-            <button class="button" id="oui1" onclick="repondre('Oui', 'question1')">Merci 😊</button>
-            <button class="button" id="non1" onclick="repondre('Non', 'question1')">T'es aveugle ?</button>
-        </div>
-
-        <div class="question hidden" id="question2">
-            <p>Sur une échelle de 1 à 100, à quel point je suis parfait ?</p>
-            <button class="button" onclick="repondre('Oui', 'question2')">194729 x infini ² ❤️</button>
-            <button class="button" onclick="repondre('Non', 'question2')">194729 x infini ❤️</button>
-            <p>!!! ATTENTION !!!</p>
-        </div>
-
-        <div class="question hidden" id="question3">
-            <p>Même si je suis casse-pieds tout le temps avec mes LEGO, tu m'aimes ?</p>
-            <button class="button" onclick="repondre('Non', 'question3')">tu est un tantinet casse pied avec tes LEGO</button>
-            <button class="button" onclick="repondre('Oui', 'question3')">Mais quel question bien sur ❤️</button>
-            <div style="margin-top: 20px; font-size: 0.8em; color: #666; font-style: italic;">
-            <p><strong>DÉFINITION :</strong> Un tantinet (adv.) : Un tout petit peu, un brin. Exemple : "Il est un tantinet casse-pieds, mais on l'aime quand même."</p>
-            <p><strong>OUI J'AI PRIS LE TEMPS DE CHERCHER LA DEFINITION POUR TOI MA PETITE QUÉBECOISE </strong></p>
-        </div>
-            </div>
-        
-        <div class="question hidden" id="question4">
-            <p>Sais-tu pourquoi j'ai fait ce site ?</p>
-            <button class="button" onclick="repondre('Oui', 'question4')">Non, mais je veux bien savoir</button>
-            <button class="button" onclick="repondre('Oui', 'question4')">la même réponse qu'à gauche mais x2</button>
-            <p>Aucune Mauvaise réponse je suis gentil</p>
-        </div>
-        
-        <div class="question hidden" id="question4b">
-            <p><strong>LA RAISON :</strong> J'avais bien du temps libre !</p>
-            <button class="button" onclick="repondre('Oui', 'question4b')">aller clique ici pour voir la suite</button>
-        </div>
-
-        <div class="question hidden" id="question5">
-            <p>Est-ce que tu as faim ?</p>
-            <button class="button" onclick="repondre('Oui', 'question5')">Oui, quel question...</button>
-            <button class="button" onclick="repondre('Non', 'question5')">Euh... non pas plus que ça !</button>
-        </div>
-        
-        <div class="question hidden" id="question5b">
-            <p><strong>CA TOMBE BIEN MOI AUSSI</strong></p>
-            <button class="button" onclick="repondre('Oui', 'question5b')">Aller clique ici pour voir la suite ENCORE</button>
-        </div>
-
-        <div class="question hidden" id="question6">
-            <p>Si je dis BELUGA, tu réponds quoi ?</p>
-            <img src="https://media.giphy.com/media/3PcdDjWGVtQE3du686/giphy.gif?cid=790b76119rb75jsjl712arjifupdc0p1aeckvluk0br6nu57&ep=v1_gifs_search&rid=giphy.gif&ct=g" alt="Love" class="gif">
-            <p><p>
-            <button class="button" onclick="repondre('Non', 'question6')">crustacé</button>
-            <button class="button" onclick="repondre('Oui', 'question6')">CRUUUUUU STAAAAAA CÉÉÉÉÉÉÉÉÉ (en criant)</button>
-            <p>Bon je manque d'inspiration....</p>
-        </div>
-
-        <div class="question hidden" id="question7">
-            <p>Tu penses quoi de moi ?</p>
-            <button class="button" onclick="repondre('Oui', 'question7')">T'es génial 😘</button>
-            <button class="button" onclick="repondre('Non', 'question7')">T'es... spécial...</button>
-        </div>
-
-        <div class="question hidden" id="question8">
-            <p>En vrai, tu m'aimes ?</p>
-            <button class="button" onclick="repondre('Oui', 'question8')">Oui, à la folie ❤️</button>
-            <button class="button" onclick="repondre('Non', 'question8')">Non, pas du tout</button>
-        </div>
-        
-        <div class="question hidden" id="question9">
-            <p>Je t'aime plus que tout au monde ❤️</p>
-            <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnNteDZ2b282Yzl6cmNkeGV0NGZwenNyaDQzeGZsOHFxaWtrYXB2OSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/xM3ptQtRagYCs/giphy.gif" alt="Love" class="gif">
-            <p>bordel c'etait si long à faire alors... attend voici la suite</p>
-            <button class="button" onclick="repondre('Oui', 'question9')">Voici ton cadeau</button>
-        </div>
-        
-        <div class="question hidden" id="question10">
-            <p>❤️ TAAADAAAAAA C'EST MOI TON CADEAU ❤️</p>
-            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTre8P-8hAzE2sGVGSG0Z1y7lBCFKeL95i-hw&s" alt="Love" class="gif">
-            <p>Attennnnnnnnnd</p>
-            <button class="button" onclick="repondre('Oui', 'question10')">Je plaisante, voici ton cadeau</button>
-        </div>
-        
-        <div class="question hidden" id="question11">
-            <p>On va ici,</p> 
-            <p>je sais que tu te demandes c’est quoi...... </p>
-            <img src="assets/mascouche.png" alt="Mascouche" style="width: 400px; height: auto;">
-            <p>      <p>
-            <p><strong>LE SEUL TRUC QUE TU DOIS SAVOIR,</strong> </p>
-            <p><strong>C’EST QU’IL Y A UN BUDGET SPÉCIALEMENT RÉSERVÉ</strong> </p>
-            <p><strong>JUSTE POUR TOI À CET ENDROIT. ❤️</strong> </p>
-            <button class="button" onclick="repondre('Oui', 'question11')">JE TAIME</button>
-        </div>
-
-        <!-- Messages finaux -->
-        <div class="message hidden" id="message">
-            <p>Je t'aime plus que tout au monde ❤️</p>
-            <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExajkwbGxqODVoY2FuZjhhdmc3bGQ0dnhzNzlna3NpMWpmcHJoemczNSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/c76IJLufpNwSULPk77/giphy.gif" alt="Love" class="gif">
-            <p>Hummm tu vas dire que j'ai fait tout ca pour juste ca... et bien ouiiiii hahah</p>
-        </div>
-        
-        
-
-        <div class="message hidden" id="plotTwist">
-            <p>Haha, tu as cru que tu pouvais dire Non ? 😏</p>
-            <p>Je te laisse une deuxième chance 😉</p>
-            <img src="https://media.giphy.com/media/l0MYEqEzwMWFCg8rm/giphy.gif" alt="Plot twist" class="gif">
-            <p></p>
-            <button class="button" onclick="retourQuestion()">Retour à la question</button>
-            <p></p>
-            <p> . . . . . . . . . . . . . . .  . . . . . . .</p>
-            <p>Clique sur "Oui" cette fois !</p>
-            <p> . . . . . . . . . . . . . . .  . . . . . . .</p>
-        </div>
+    <!-- Étape 2 : Explication des épreuves -->
+    <div class="container hidden" id="etape2">
+        <h1>Attention !</h1>
+        <p>Dans les prochaines minutes, tu auras quelques épreuves à faire pour pouvoir accéder à ton message secret à la fin.</p>
+        <button onclick="afficherPopup()">Je suis prêt à commencer</button>
     </div>
 
-    <!-- Script pour les confettis -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <!-- Étape 3 : Pop-up avec les règles du jeu -->
+    <div class="popup hidden" id="popup">
+        <h1>Règles du jeu</h1>
+        <p>Tu dois éclater le nombre de ballons correspondant à ta VRAIE FÊTE.</p>
+        <p>Comme tu es née un 29 février, calcule le nombre de fois où il y a eu un 29 février depuis ta naissance.</p>
+        <p><strong> Depuis 1972 inclus, il y a eu un 29 février dans les années bissextiles suivantes :</strong></p>
+        <p>1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024.</p>
+        <button onclick="commencerJeu()">Commencer</button>
+    </div>
+
+    <!-- Étape 4 : Jeu des ballons -->
+    <div class="container hidden" id="jeu">
+        <h1>Éclate les ballons !</h1>
+        <p>Clique sur <strong>14 ballons</strong> pour continuer.</p>
+        <div id="ballons-container"></div>
+    </div>
+
+    <!-- Étape 5 : Énigme finale -->
+    <div class="container hidden" id="enigme-container">
+        <h1>Félicitation !</h1>
+        <p>Pour accéder à la suite, tu dois résoudre cette énigme :</p>
+        <p><strong>Je suis rare, je n'arrive que tous les 4 ans. Qui suis-je ?</strong></p>
+        <input type="text" id="reponse" placeholder="Ta réponse ici...">
+        <button onclick="verifierReponse()">Valider</button>
+    </div>
+
+    <!-- Étape 6 : Message d'anniversaire -->
+    <div class="container hidden" id="anniversaire-container">
+        <h1>🎉 Joyeux Anniversaire Stéphanie ! 🎉</h1>
+        <p>Bravo, tu as résolu l'énigme ! 🎈</p>
+        <p>Ça fait 10 ans que je te connais, et tu mérites une fête exceptionnelle !</p>
+        <p>Ton anniversaire est tellement spécial qu'il n'arrive que tous les 4 ans... 😂</p>
+        <p>Profite bien de cette journée unique, tout comme toi ! 🎂🎈</p>
+    </div>
+
     <script>
-        let nonCount = 0;
-        let lastNonQuestionId = null;
-        let riddleAttempts = 0;
-        let indiceAffiche = false;
+        // Variables
+        let ballonsEclates = 0;
+        const ballonsTotal = 14; // Nombre de ballons à éclater
 
-        // Démarrer le décompte de 10 secondes
-        setTimeout(() => {
-            if (!indiceAffiche) {
-                afficherIndice();
-            }
-        }, 10000);
-
-        // Afficher l'indice
-        function afficherIndice() {
-            document.getElementById('indice').classList.remove('hidden');
-            indiceAffiche = true;
+        // Fonctions pour afficher les étapes
+        function afficherEtape2() {
+            document.getElementById('etape1').classList.add('hidden');
+            document.getElementById('etape2').classList.remove('hidden');
         }
 
-        // Vérifier l'énigme
-        function checkRiddle() {
-            const answer = document.getElementById('riddleAnswer').value.toLowerCase();
-            if (answer.includes('futur') || answer.includes('avenir')) {
-                document.getElementById('cover').classList.add('hidden');
-                document.getElementById('questionnaire').classList.remove('hidden');
-                setTimeout(() => {
-                    document.getElementById('question1').classList.add('visible');
-                }, 100); // Délai de 100ms pour l'affichage de la première question
+        function afficherPopup() {
+            document.getElementById('etape2').classList.add('hidden');
+            document.getElementById('popup').classList.remove('hidden');
+        }
+
+        function commencerJeu() {
+            document.getElementById('popup').classList.add('hidden');
+            document.getElementById('jeu').classList.remove('hidden');
+            genererBallons();
+        }
+
+        // Générer des ballons
+        function genererBallons() {
+            const container = document.getElementById('ballons-container');
+            for (let i = 0; i < 20; i++) { // Générer 20 ballons
+                const balloon = document.createElement('div');
+                balloon.className = 'balloon';
+                balloon.style.left = Math.random() * 80 + 'vw';
+                balloon.style.top = Math.random() * 80 + 'vh';
+                balloon.style.animationDuration = Math.random() * 6 + 4 + 's';
+                balloon.onclick = () => eclaterBallon(balloon);
+                container.appendChild(balloon);
+            }
+        }
+
+        // Éclater un ballon
+        function eclaterBallon(balloon) {
+            balloon.remove();
+            ballonsEclates++;
+            if (ballonsEclates >= ballonsTotal) {
+                document.getElementById('jeu').classList.add('hidden');
+                document.getElementById('enigme-container').classList.remove('hidden');
+            }
+        }
+
+        // Vérification de la réponse à l'énigme
+        function verifierReponse() {
+            const reponse = document.getElementById('reponse').value.toLowerCase();
+            const reponsesValides = [
+                "29 février", "29 fevrier", "ma fete", "mon anniversaire", 
+                "ma fête", "moi", "ma naissance"
+            ];
+
+            if (reponsesValides.includes(reponse)) {
+                document.getElementById('enigme-container').classList.add('hidden');
+                document.getElementById('anniversaire-container').classList.remove('hidden');
+                startConfetti();
             } else {
-                riddleAttempts++;
-                if (riddleAttempts >= 2) {
-                    afficherIndice();
-                }
-                alert('Presque ! Réessaye 😉');
+                alert("Pfff tu y es presque ! Essaie encore 😉");
             }
         }
 
-        // Afficher la question suivante
-        function showNextQuestion(currentQuestionId) {
-            const currentQuestion = document.getElementById(currentQuestionId);
-            const nextQuestion = currentQuestion.nextElementSibling;
+        // Confettis animés
+        function startConfetti() {
+            setInterval(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                document.body.appendChild(confetti);
 
-            if (nextQuestion && nextQuestion.classList.contains('question')) {
-                currentQuestion.classList.remove('visible');
                 setTimeout(() => {
-                    currentQuestion.classList.add('hidden');
-                    nextQuestion.classList.remove('hidden');
-                    setTimeout(() => nextQuestion.classList.add('visible'), 50);
-                }, 500);
-            } else {
-                currentQuestion.classList.remove('visible');
-                setTimeout(() => {
-                    currentQuestion.classList.add('hidden');
-                    document.getElementById('message').classList.remove('hidden');
-                    setTimeout(() => document.getElementById('message').classList.add('visible'), 50);
-                }, 500);
-            }
-        }
-
-        // Lancer des confettis
-        function lancerConfettis() {
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-        }
-
-        // Répondre aux questions
-        function repondre(reponse, questionId) {
-            const nonButton = document.querySelector(`#${questionId} button[onclick*="Non"]`);
-
-            if (reponse === 'Oui') {
-                lancerConfettis(); // Lancer des confettis quand elle répond "Oui"
-                showNextQuestion(questionId);
-            } else if (reponse === 'Non') {
-                nonCount++;
-                lastNonQuestionId = questionId;
-
-                // Effets visuels pour "Non"
-                if (nonCount === 1) {
-                    nonButton.textContent = 'Non ? Sérieusement ?';
-                    nonButton.style.animation = 'shake 0.5s ease';
-                } else if (nonCount === 2) {
-                    nonButton.textContent = 'Non ?! Tu es sûre ?';
-                    nonButton.style.animation = 'shake 0.5s ease';
-                } else if (nonCount === 3) {
-                    nonButton.textContent = 'NON ?! 😱';
-                    nonButton.style.animation = 'shake 0.5s ease';
-                } else {
-                    // Plot twist après 3 clics sur "Non"
-                    document.getElementById(questionId).classList.remove('visible');
-                    setTimeout(() => {
-                        document.getElementById(questionId).classList.add('hidden');
-                        document.getElementById('plotTwist').classList.remove('hidden');
-                        setTimeout(() => document.getElementById('plotTwist').classList.add('visible'), 50);
-                    }, 500);
-                    nonCount = 0; // Réinitialiser le compteur
-                }
-
-                // Réinitialiser l'animation après qu'elle se termine
-                setTimeout(() => nonButton.style.animation = '', 500);
-            }
-        }
-
-        // Retour à la question où elle a répondu "Non"
-        function retourQuestion() {
-            document.getElementById('plotTwist').classList.remove('visible');
-            setTimeout(() => {
-                document.getElementById('plotTwist').classList.add('hidden');
-                document.getElementById(lastNonQuestionId).classList.remove('hidden');
-                setTimeout(() => document.getElementById(lastNonQuestionId).classList.add('visible'), 50);
-            }, 500);
+                    confetti.remove();
+                }, 5000);
+            }, 300);
         }
     </script>
-
 </body>
 </html>
